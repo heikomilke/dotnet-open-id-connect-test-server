@@ -1,0 +1,34 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "alice",
+      "email": "alice@example.com",
+      "claims": {
+        "name": "Alice Smith",
+        "role": "admin",
+        "department": "Engineering"
+      }
+    },
+    {
+      "id": "2",
+      "username": "bob",
+      "email": "bob@example.com",
+      "claims": {
+        "name": "Bob Jones",
+        "role": "user",
+        "department": "Sales"
+      }
+    },
+    {
+      "id": "3",
+      "username": "carol",
+      "email": "carol@example.com",
+      "claims": {
+        "name": "Carol White",
+        "role": "manager",
+        "department": "Marketing"
+      }
+    }
+  ]
+}

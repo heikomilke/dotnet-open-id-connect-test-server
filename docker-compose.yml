@@ -1,0 +1,10 @@
+services:
+  oidc-server:
+    build: .
+    ports:
+      - "50000:50000"
+    volumes:
+      - ./config:/app/config:ro
+    environment:
+      - ASPNETCORE_URLS=http://+:50000
+      - ConfigPath=/app/config
