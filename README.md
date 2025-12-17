@@ -6,16 +6,39 @@ A lightweight OpenID Connect server for testing OIDC client implementations. Bui
 
 - **No database required** - file-based configuration for users and clients
 - **User picker UI** - select which test user to authenticate as (no passwords)
-- **Docker ready** - run with a single command
-- **Standard OIDC flows** - Authorization Code + PKCE, Client Credentials, Refresh Tokens
+- **Standard OIDC flows** - Authorization Code, Client Credentials, Refresh Tokens
+- **Includes test client** - ready-to-use web app for verifying the setup
 
 ## Quick Start
 
 ```bash
-docker compose up
+./dev.sh
 ```
 
-Server available at **http://localhost:50000**
+This starts both the OIDC server and test client in a tmux session.
+
+Or run manually:
+
+```bash
+# Terminal 1: OIDC Server
+cd src/TestOidcServer && dotnet run
+
+# Terminal 2: Test Client
+cd src/TestClient && dotnet run
+```
+
+- **OIDC Server**: http://localhost:50000
+- **Test Client**: http://localhost:60000
+
+## Test Client
+
+The included test client (`src/TestClient`) demonstrates OIDC authentication:
+
+- **Home page** (`/`) - Shows login status
+- **Private page** (`/Private`) - Requires authentication, displays user claims and tokens
+- **Logout** (`/Logout`) - Signs out from both client and OIDC server
+
+Visit http://localhost:60000 and click "Login to View Profile" to test the flow.
 
 ## Endpoints
 
@@ -39,7 +62,6 @@ Server available at **http://localhost:50000**
       "username": "alice",
       "email": "alice@example.com",
       "claims": {
-        "name": "Alice Smith",
         "role": "admin",
         "department": "Engineering"
       }
@@ -69,14 +91,6 @@ Add any custom claims - they'll be included in tokens.
 
 Omit `clientSecret` for public clients (SPAs, mobile apps).
 
-#### Available Permissions
-
-- `authorization_code` - Authorization Code flow
-- `client_credentials` - Client Credentials flow
-- `refresh_token` - Refresh tokens
-- `openid`, `profile`, `email` - Standard OIDC scopes
-- `api` - Custom API scope
-
 ## Default Test Users
 
 | Username | Role | Department |
@@ -92,48 +106,6 @@ Omit `clientSecret` for public clients (SPAs, mobile apps).
 | `test-client` | `test-secret` | Confidential (web apps) |
 | `public-client` | - | Public (SPA/mobile) |
 | `machine-client` | `machine-secret` | Client Credentials |
-
-## Examples
-
-### Client Credentials Flow
-
-```bash
-curl -X POST http://localhost:50000/connect/token \
-  -d "grant_type=client_credentials" \
-  -d "client_id=machine-client" \
-  -d "client_secret=machine-secret" \
-  -d "scope=api"
-```
-
-### Authorization Code Flow
-
-Open in browser:
-```
-http://localhost:50000/connect/authorize?client_id=test-client&redirect_uri=http://localhost:5001/callback&response_type=code&scope=openid%20profile%20email
-```
-
-Select a user, then exchange the code:
-```bash
-curl -X POST http://localhost:50000/connect/token \
-  -d "grant_type=authorization_code" \
-  -d "client_id=test-client" \
-  -d "client_secret=test-secret" \
-  -d "code=YOUR_CODE" \
-  -d "redirect_uri=http://localhost:5001/callback"
-```
-
-### Postman
-
-- Auth URL: `http://localhost:50000/connect/authorize`
-- Token URL: `http://localhost:50000/connect/token`
-- Callback: `https://oauth.pstmn.io/v1/callback`
-
-## Running Without Docker
-
-```bash
-cd src/TestOidcServer
-dotnet run
-```
 
 ## License
 

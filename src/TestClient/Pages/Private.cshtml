@@ -1,0 +1,248 @@
+@page
+@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
+@using System.IdentityModel.Tokens.Jwt
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@{
+    ViewData["Title"] = "Profile";
+    var tokens = new Dictionary<string, string?>();
+
+    var accessToken = await HttpContext.GetTokenAsync("access_token");
+    var idToken = await HttpContext.GetTokenAsync("id_token");
+    var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
+    var expiresAt = await HttpContext.GetTokenAsync("expires_at");
+
+    if (!string.IsNullOrEmpty(accessToken)) tokens["Access Token"] = accessToken;
+    if (!string.IsNullOrEmpty(idToken)) tokens["ID Token"] = idToken;
+    if (!string.IsNullOrEmpty(refreshToken)) tokens["Refresh Token"] = refreshToken;
+
+    // Parse token timing info
+    DateTime? issuedAt = null;
+    DateTime? expiresAtTime = null;
+    TimeSpan? remainingTime = null;
+
+    if (!string.IsNullOrEmpty(expiresAt) && DateTimeOffset.TryParse(expiresAt, out var expiry))
+    {
+        expiresAtTime = expiry.LocalDateTime;
+        remainingTime = expiry - DateTimeOffset.UtcNow;
+    }
+
+    if (!string.IsNullOrEmpty(idToken))
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jwt = handler.ReadJwtToken(idToken);
+        issuedAt = jwt.IssuedAt.ToLocalTime();
+    }
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Test Client</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #1a1a2e;
+            margin: 0 0 5px 0;
+        }
+        h2 {
+            color: #333;
+            margin: 0 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-right: 10px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .nav {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            width: 200px;
+        }
+        td {
+            color: #555;
+            word-break: break-all;
+        }
+        .token-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            background: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            max-height: 100px;
+            overflow-y: auto;
+            display: block;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="nav">
+                <a href="/" class="btn btn-secondary">Home</a>
+                <a href="/Logout" class="btn btn-danger">Logout</a>
+            </div>
+
+            <div class="section-title">
+                <h1>User Profile</h1>
+                <span class="badge">Authenticated</span>
+            </div>
+            <p class="subtitle">Information retrieved from the OIDC server</p>
+        </div>
+
+        <div class="card">
+            <h2>Claims</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Claim Type</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var claim in User.Claims)
+                    {
+                        <tr>
+                            <td><strong>@claim.Type.Split('/').Last()</strong></td>
+                            <td>@claim.Value</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (issuedAt.HasValue || expiresAtTime.HasValue)
+        {
+            <div class="card">
+                <h2>Token Validity</h2>
+                <table>
+                    <tbody>
+                        @if (issuedAt.HasValue)
+                        {
+                            <tr>
+                                <th>Issued At</th>
+                                <td>@issuedAt.Value.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            </tr>
+                        }
+                        @if (expiresAtTime.HasValue)
+                        {
+                            <tr>
+                                <th>Expires At</th>
+                                <td>@expiresAtTime.Value.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            </tr>
+                        }
+                        @if (remainingTime.HasValue)
+                        {
+                            var isExpired = remainingTime.Value.TotalSeconds <= 0;
+                            <tr>
+                                <th>Status</th>
+                                <td style="color: @(isExpired ? "#dc3545" : "#28a745"); font-weight: 600;">
+                                    @if (isExpired)
+                                    {
+                                        <text>Expired</text>
+                                    }
+                                    else
+                                    {
+                                        var ts = remainingTime.Value;
+                                        <text>Valid for @($"{(int)ts.TotalMinutes}m {ts.Seconds}s")</text>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (tokens.Any())
+        {
+            <div class="card">
+                <h2>Tokens</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var token in tokens)
+                        {
+                            <tr>
+                                <td><strong>@token.Key</strong></td>
+                                <td><code class="token-value">@token.Value</code></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</body>
+</html>

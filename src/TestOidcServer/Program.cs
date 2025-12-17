@@ -67,19 +67,19 @@ builder.Services.AddOpenIddict()
         options.AddEventHandler<OpenIddictServerEvents.ValidateAuthorizationRequestContext>(builder =>
         {
             builder.UseScopedHandler<ValidateAuthorizationRequestHandler>();
-            builder.SetOrder(100); // Run early in the pipeline
+            builder.SetOrder(100);
         });
 
         options.AddEventHandler<OpenIddictServerEvents.ValidateTokenRequestContext>(builder =>
         {
             builder.UseScopedHandler<ValidateTokenRequestHandler>();
-            builder.SetOrder(100); // Run early in the pipeline
+            builder.SetOrder(100);
         });
 
         options.AddEventHandler<OpenIddictServerEvents.ValidateEndSessionRequestContext>(builder =>
         {
             builder.UseScopedHandler<ValidateEndSessionRequestHandler>();
-            builder.SetOrder(100); // Run early in the pipeline
+            builder.SetOrder(100);
         });
     })
     .AddValidation(options =>

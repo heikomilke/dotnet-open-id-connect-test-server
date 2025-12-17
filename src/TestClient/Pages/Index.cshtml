@@ -1,0 +1,115 @@
+@page
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Test Client</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 40px;
+            text-align: center;
+        }
+        h1 {
+            color: #1a1a2e;
+            margin: 0 0 10px 0;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .status.authenticated {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.anonymous {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-primary {
+            background: #4a90d9;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .user-info {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .user-info strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>OIDC Test Client</h1>
+            <p class="subtitle">Test application for OpenID Connect authentication</p>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="status authenticated">
+                    Logged in as <strong>@User.Identity.Name</strong>
+                </div>
+                <div>
+                    <a href="/Private" class="btn btn-primary">View Profile</a>
+                    <a href="/Logout" class="btn btn-danger">Logout</a>
+                </div>
+            }
+            else
+            {
+                <div class="status anonymous">
+                    You are not logged in
+                </div>
+                <div>
+                    <a href="/Private" class="btn btn-primary">Login to View Profile</a>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>
